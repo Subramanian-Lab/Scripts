@@ -1,6 +1,5 @@
 # ------------------------------------------------------------------------------
-# Title: Creating a GRanges object containing centromere data for a custom
-#       genome.
+# Title: Creating a GRanges object containing centromere data for a custom genome.
 # Author: Devanarayanan P
 # Date: 30 July 2024
 # Based on: hwlabgr2 Github page (data_internal.R)
