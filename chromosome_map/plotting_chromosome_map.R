@@ -1,3 +1,9 @@
+# ------------------------------------------------------------------------------
+# Title: An example code for plotting the chromosomes maps using the functions. 
+# Author: Devanarayanan P
+# Date: 30 July 2024
+# ------------------------------------------------------------------------------
+
 # Sourcing files
 source("get_chromosome_cordinates.R")
 source("generating_centromere_data.R")
