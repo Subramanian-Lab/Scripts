@@ -1,4 +1,4 @@
-# Chromosome map
+# Plotting Chromosome map
 
 The code provided can be used to plot chromosome maps for *S. Cerevisiae* like shown in [Subramanian VV. et al. 2019](https://www.nature.com/articles/s41467-019-08875-x) for custom genome. 
 
