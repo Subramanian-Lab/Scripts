@@ -9,7 +9,7 @@ The code provided can be used to plot chromosome maps for *S. Cerevisiae* like s
 - `get_chromosome_cordinates` -> Creating a GRanges object containing centromere data from a custom .gff file 
 - `generating_centromere_data.R` -> Calculating centromere midpoints for the chromosomal plot. 
 
-### Examples case:
+### Example case:
 - `plotting_chromosome_map.R` -> shows an example code for using the functions to plot the chromosome map
 
 
