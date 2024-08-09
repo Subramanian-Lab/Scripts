@@ -3,8 +3,8 @@
 This repository contains the R scripts used by Subramanian Lab.
 
 ## Table of Contents
-- Scripts
-    - [Chromosome maps](#chrmaps)
+Scripts
+    : [Chromosome maps](#chrmaps)
 - [Authors](#auth)
 - [Acknowledgements](#acknow)
 
