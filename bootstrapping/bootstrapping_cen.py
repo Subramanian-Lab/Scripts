@@ -158,4 +158,4 @@ def main(bedgraph_file, extend, num_realisation, feature_file, output_tag):
     with open(f"{output_tag}_randratio_num-real-{str(num_realisation)}_ext-{str(extend)}.txt", "w") as f:
         f.write("\n".join(map(str, rand_ratio)))
 
-main(bedgraph_file_path, 2000, 10, gff_file_path, "zip3_del")
+main(bedgraph_file_path, 2000, 5000, gff_file_path, "zip3_del")
