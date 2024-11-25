@@ -17,8 +17,7 @@ def read_bedgraph(input_file):
 
     for row in bedgraph_list:
         if len(row) != 4:
-            print("Rows not complete")
-            exit()
+            raise ValueError(f"Invalid row in bedgraph file: {row}")
         else:
             bedgraph_dictionary[row[0]].append(list(map(float, row[1:])))
 
@@ -87,7 +86,7 @@ def real_data_ratio(bed_file, wiggle_dictionary, extend):
     total_cen_signal = sum([i[0][0] for i in data_real.values()])
     total_cen_length = sum([i[0][1] for i in data_real.values()])
 
-    return data_real, total_cen_length, total_cen_signal
+    return data_real, total_cen_signal, total_cen_length
 
 # Taking ratio from random sampling
 def random_data_ratio(num_realisation, wiggle_dictionary, extend):
@@ -127,7 +126,7 @@ def calculate_genome_average_signal(wiggle_dictionary):
     total_genome_signal = sum([chr_signal[0][0] for chr_signal in data_genome.values()])
     total_genome_length = sum([chr_signal[0][1] for chr_signal in data_genome.values()])
 
-    return total_genome_length, total_genome_signal
+    return total_genome_signal, total_genome_length
 
 def main(bedgraph_file, extend, num_realisation, feature_file, output_tag):
     wiggle_dictionary = read_bedgraph(bedgraph_file)
@@ -155,7 +154,7 @@ def main(bedgraph_file, extend, num_realisation, feature_file, output_tag):
     rand_ratio = [(total_random_signal[i] / total_random_length[i]) / genome_average_signal for i in range(len(total_random_signal))]
 
     # Writing results to output file
-    with open(f"{output_tag}_randratio_num-real-{str(num_realisation)}_ext-{str(extend)}.txt", "w") as f:
+    with open(f"{output_tag}_cenrandratio_num-real-{str(num_realisation)}_ext-{str(extend)}.txt", "w") as f:
         f.write("\n".join(map(str, rand_ratio)))
 
 main(bedgraph_file_path, 2000, 5000, gff_file_path, "zip3_del")

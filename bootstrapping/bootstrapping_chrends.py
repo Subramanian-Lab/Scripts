@@ -71,23 +71,24 @@ def read_bed_gff_file(feature_file):
 # Generating ratio from the feature data
 def real_data_ratio(bed_file, wiggle_dictionary, extend):
     extend = int(extend)
-    centromere_data = read_bed_gff_file(bed_file)
+    bedfile_data = read_bed_gff_file(bed_file)
 
     data_real = defaultdict(list)
 
     # Averaging signal around an extended region from the midpoint
-    for cen in centromere_data:
-        chr = cen[0]
-        mid = round((cen[1] + cen[2]) / 2)
-        start = mid - (extend / 2)
-        end = mid + (extend / 2)
-        cen_signal_list = [row[1] for row in wiggle_dictionary[chr] if row[0] >= start and row[0] <= end]
-        data_real[chr].append([sum(cen_signal_list), len(cen_signal_list)])
+    for ends in bedfile_data:
+        chr = ends[0]
+        left_end = ends[1] + extend
+        right_start = ends[2] - extend
+        left_arm = [row[1] for row in wiggle_dictionary[chr] if row[0] >= ends[1] + 20000 and row[0] <= left_end] 
+        right_arm = [row[1] for row in wiggle_dictionary[chr] if row[0] >= right_start + 20000 and row[0] <= ends[2] - 20000] 
+        end_signal_list = left_arm + right_arm
+        data_real[chr].append([sum(end_signal_list), len(end_signal_list)])
     
-    total_cen_signal = sum([i[0][0] for i in data_real.values()])
-    total_cen_length = sum([i[0][1] for i in data_real.values()])
+    total_end_signal = sum([i[0][0] for i in data_real.values()])
+    total_end_length = sum([i[0][1] for i in data_real.values()])
 
-    return data_real, total_cen_length, total_cen_signal
+    return data_real, total_end_signal, total_end_length
 
 # Taking ratio from random sampling
 def random_data_ratio(num_realisation, wiggle_dictionary, extend):
@@ -97,19 +98,20 @@ def random_data_ratio(num_realisation, wiggle_dictionary, extend):
 
     for i in tqdm(range(int(num_realisation))):
         for chr in wiggle_dictionary.keys():
-            random_index = random.randint(0, len(wiggle_dictionary[chr]) - 1)
-            start = wiggle_dictionary[chr][random_index][0]
-            end = start + extend
+            for _ in range(2):
+                random_index = random.randint(0, len(wiggle_dictionary[chr]) - 1)
+                start = wiggle_dictionary[chr][random_index][0]
+                end = start + int(extend) - 20000
 
-            # wrapping around if the end point is greater than genome length
-            if wiggle_dictionary[chr][-1][0] < end:
-                new_end = end - wiggle_dictionary[chr][-1][0] + 1
-                signal_list = [j[1] for j in wiggle_dictionary[chr] if j[0] >= start or j[0] <= end]
-                data_random[chr].append([sum(signal_list), len(signal_list)])
+                # wrapping around if the end point is greater than genome length
+                if wiggle_dictionary[chr][-1][0] < end:
+                    new_end = end - wiggle_dictionary[chr][-1][0] + 1
+                    signal_list = [j[1] for j in wiggle_dictionary[chr] if j[0] >= start or j[0] <= end]
+                    data_random[chr].append([sum(signal_list), len(signal_list)])
 
-            else:
-                signal_list = [j[1] for j in wiggle_dictionary[chr] if j[0] >= start and j[0] <= end]
-                data_random[chr].append([sum(signal_list), len(signal_list)])
+                else:
+                    signal_list = [j[1] for j in wiggle_dictionary[chr] if j[0] >= start and j[0] <= end]
+                    data_random[chr].append([sum(signal_list), len(signal_list)])
 
         total_random_signal.append(sum([data_random[key][i][0] for key in data_random.keys()]))
         total_random_length.append(sum([data_random[key][i][1] for key in data_random.keys()]))
@@ -127,7 +129,7 @@ def calculate_genome_average_signal(wiggle_dictionary):
     total_genome_signal = sum([chr_signal[0][0] for chr_signal in data_genome.values()])
     total_genome_length = sum([chr_signal[0][1] for chr_signal in data_genome.values()])
 
-    return total_genome_length, total_genome_signal
+    return total_genome_signal, total_genome_length
 
 def main(bedgraph_file, extend, num_realisation, feature_file, output_tag):
     wiggle_dictionary = read_bedgraph(bedgraph_file)
@@ -137,13 +139,13 @@ def main(bedgraph_file, extend, num_realisation, feature_file, output_tag):
     genome_average_signal = total_genome_signal / total_genome_length
 
     # Calculating average signal at centromere (normalised)
-    data_real, total_cen_signal, total_cen_length = real_data_ratio(feature_file, wiggle_dictionary, extend)
-    cen_ratio = (total_cen_signal / total_cen_length) / genome_average_signal
+    data_real, total_end_signal, total_end_length = real_data_ratio(feature_file, wiggle_dictionary, extend)
+    cen_ratio = (total_end_signal / total_end_length) / genome_average_signal
 
     # Writing results to output file
     chr_order = ["chrI", "chrII", "chrIII", "chrIV", "chrV", "chrVI", "chrVII", "chrVIII", "chrIX", "chrX", "chrXI", "chrXII", "chrXIII", "chrXIV", "chrXV", "chrXVI"]
 
-    with open(f"{output_tag}_cendata_ext-{str(extend)}.txt", "w") as f:
+    with open(f"{output_tag}_enddata_ext-{str(extend)}_chrends.txt", "w") as f:
         f.write("\t".join(["region", "total_signal", "num_bases"]) + "\n")
         for chr in chr_order:
             f.write(f"{chr}\t{str(data_real[chr][0][0])}\t{str(data_real[chr][0][1])}\n")
@@ -155,7 +157,7 @@ def main(bedgraph_file, extend, num_realisation, feature_file, output_tag):
     rand_ratio = [(total_random_signal[i] / total_random_length[i]) / genome_average_signal for i in range(len(total_random_signal))]
 
     # Writing results to output file
-    with open(f"{output_tag}_randratio_num-real-{str(num_realisation)}_ext-{str(extend)}.txt", "w") as f:
+    with open(f"{output_tag}_endrandratio_num-real-{str(num_realisation)}_ext-{str(extend)})_chrends.txt", "w") as f:
         f.write("\n".join(map(str, rand_ratio)))
 
-main(bedgraph_file_path, 2000, 5000, gff_file_path, "zip3_del")
+main(bedgraph_file_path, 110000, 5000, gff_file_path, "zip3_del")
